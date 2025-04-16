@@ -1,31 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Metadata } from 'next';
 import Feed from '@/components/Feed';
 import Sidebar from '@/components/Sidebar';
 
-export const metadata: Metadata = {
-  title: 'FireWorld - Where Ideas Ignite',
-  description: 'Connect and share in the world of FireWorld',
-};
-
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    }
-  }, [router]);
-
   return (
-    <main className="flex min-h-screen bg-gradient-to-br from-orange-900 via-red-800 to-red-900">
-      <Sidebar />
-      <div className="flex-1 container mx-auto px-4 py-8">
-        <Feed />
+    <main className="flex min-h-screen w-full">
+      <div className="fixed left-0 top-0 h-full w-64">
+        <Sidebar />
+      </div>
+      <div className="ml-64 flex-1 flex justify-center">
+        <div className="w-full max-w-2xl px-4 py-8">
+          <Feed />
+        </div>
       </div>
     </main>
   );

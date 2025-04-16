@@ -50,7 +50,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 h-screen bg-black/20 backdrop-blur-lg p-6 flex flex-col fixed">
+    <div className="w-64 h-screen bg-pink-500backdrop-blur-lg p-6 flex flex-col fixed ">
       <div className="flex items-center space-x-4 mb-8">
         <Image
           src="/logo.png"
@@ -59,7 +59,7 @@ export default function Sidebar() {
           height={40}
           className="rounded-lg"
         />
-        <h1 className="text-2xl font-bold text-orange-500">FireWorld</h1>
+        <h1 className="text-2xlfont-bold text-orange-500">FireWorld</h1>
       </div>
 
       <nav className="flex-1">
@@ -97,13 +97,19 @@ export default function Sidebar() {
       {user && (
         <div className="border-t border-white/10 pt-4">
           <div className="flex items-center space-x-4 mb-4">
-            <Image
-              src={user.imageURL}
-              alt={user.name}
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
+            {user.imageURL ? (
+              <Image
+                src={user.imageURL}
+                alt={user.name}
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center">
+                <span className="text-white text-lg">{user.name.charAt(0)}</span>
+              </div>
+            )}
             <div>
               <p className="text-white font-semibold">{user.name}</p>
             </div>

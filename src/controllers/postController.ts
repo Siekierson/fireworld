@@ -6,31 +6,47 @@ export const postController = {
     try {
       const { data, error } = await supabase
         .from('posts')
-        .insert([{ text, ownerID, date: new Date() }])
+        .insert([{ text, ownerid: ownerID, date: new Date() }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating post:', error);
+        throw error;
+      }
       return data;
     } catch (error) {
+      console.error('Error in createPost:', error);
       throw error;
     }
   },
 
   async getPosts() {
     try {
+      console.log('Fetching posts from Supabase...');
       const { data, error } = await supabase
         .from('posts')
         .select(`
           *,
-          users (name, imageURL),
+          users (name, imageurl),
           activities (*)
         `)
         .order('date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error in getPosts:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('No data returned from Supabase');
+        return [];
+      }
+
+      console.log('Successfully fetched posts:', data);
       return data;
     } catch (error) {
+      console.error('Error in getPosts:', error);
       throw error;
     }
   },
@@ -40,11 +56,15 @@ export const postController = {
       const { error } = await supabase
         .from('posts')
         .delete()
-        .match({ postID, ownerID });
+        .match({ postid: postID, ownerid: ownerID });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting post:', error);
+        throw error;
+      }
       return true;
     } catch (error) {
+      console.error('Error in deletePost:', error);
       throw error;
     }
   },
@@ -55,15 +75,19 @@ export const postController = {
         .from('posts')
         .select(`
           *,
-          users (name, imageURL),
+          users (name, imageurl),
           activities (*)
         `)
-        .eq('ownerID', userID)
+        .eq('ownerid', userID)
         .order('date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error getting user posts:', error);
+        throw error;
+      }
       return data;
     } catch (error) {
+      console.error('Error in getUserPosts:', error);
       throw error;
     }
   }
