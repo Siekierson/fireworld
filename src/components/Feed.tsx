@@ -62,14 +62,6 @@ export default function Feed() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <div className="text-red-500 bg-white/10 p-4 rounded-lg">{error}</div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {isAuthenticated && (
@@ -79,9 +71,13 @@ export default function Feed() {
       )}
       
       <div className="space-y-4">
-        {posts.length > 0 ? (
+        {error ? (
+          <div className="text-center text-gray-400 py-8 bg-white/5 rounded-lg">
+            {error === 'Failed to load posts' ? 'No posts available' : error}
+          </div>
+        ) : posts.length > 0 ? (
           posts.map((post) => (
-            <PostCard key={post.postID} post={post} />
+            <PostCard key={`${post.postID}-${post.created_at}`} post={post} />
           ))
         ) : (
           <div className="text-center text-gray-400 py-8 bg-white/5 rounded-lg">
@@ -92,7 +88,7 @@ export default function Feed() {
 
       {news.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-black mb-4">Latest News</h2>
+          <h2 className="text-xl font-semibold text-white mb-4">Latest News</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {news.map((item, index) => (
               <NewsCard key={index} article={item} />

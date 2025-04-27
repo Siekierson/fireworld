@@ -2,16 +2,40 @@ import { supabase } from '@/lib/supabase';
 import { Activity } from '@/types/database';
 
 export const activityController = {
-  async createActivity(type: 'Like' | 'Comment', postID: string, userID: string, message?: string) {
+  async createActivity(type: 'like' | 'comment', postID: string, userID: string, message?: string) {
     try {
+      // For likes, check if the activity already exists
+      if (type === 'like') {
+        const { data: existingActivity, error: checkError } = await supabase
+          .from('activities')
+          .select('*')
+          .match({ type, postid: postID, userid: userID })
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+          throw checkError;
+        }
+
+        // If activity exists, delete it (unlike)
+        if (existingActivity) {
+          const { error: deleteError } = await supabase
+            .from('activities')
+            .delete()
+            .match({ activityid: existingActivity.activityid });
+
+          if (deleteError) throw deleteError;
+          return { type: 'unlike', postid: postID, userid: userID };
+        }
+      }
+
+      // Create new activity (like or comment)
       const { data, error } = await supabase
         .from('activities')
         .insert([{
           type,
-          postID,
-          userID,
-          message,
-          date: new Date()
+          postid: postID,
+          userid: userID,
+          message
         }])
         .select()
         .single();
@@ -19,6 +43,7 @@ export const activityController = {
       if (error) throw error;
       return data;
     } catch (error) {
+      console.error('Error in createActivity:', error);
       throw error;
     }
   },
@@ -29,10 +54,10 @@ export const activityController = {
         .from('activities')
         .select(`
           *,
-          users (name, imageURL)
+          users (name, imageurl)
         `)
-        .eq('postID', postID)
-        .order('date', { ascending: false });
+        .eq('postid', postID)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -46,7 +71,7 @@ export const activityController = {
       const { error } = await supabase
         .from('activities')
         .delete()
-        .match({ activityID, userID });
+        .match({ activityid: activityID, userid: userID });
 
       if (error) throw error;
       return true;

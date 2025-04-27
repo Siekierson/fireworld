@@ -48,10 +48,10 @@ A modern social media platform built with Next.js and Supabase, featuring real-t
    ```
 
 4. Set up your Supabase database with the following tables:
-   - users (userID, name, password, imageURL)
-   - messages (messageID, userID, message, toWhoID, date)
-   - posts (postID, date, text, ownerID)
-   - activities (activityID, type, postID, message, date)
+   - users (userID, name, password, imageURL, created_at)
+   - messages (messageID, userID, message, toWhoID, created_at)
+   - posts (postID, text, ownerID, created_at)
+   - activities (activityID, type, postID, userID, message, created_at)
 
 5. Run the development server:
    ```bash

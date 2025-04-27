@@ -2,18 +2,72 @@ import { supabase } from '@/lib/supabase';
 import { Post } from '@/types/database';
 
 export const postController = {
+  async inspectTable() {
+    try {
+      // First try to get the table structure
+      const { data: tableInfo, error: tableError } = await supabase
+        .from('posts')
+        .select('*')
+        .limit(0);
+
+      if (tableError) {
+        console.error('Error getting table structure:', tableError);
+        throw tableError;
+      }
+
+      console.log('Table structure:', tableInfo);
+
+      // Then try to get a sample row
+      const { data: sampleData, error: sampleError } = await supabase
+        .from('posts')
+        .select('*')
+        .limit(1);
+
+      if (sampleError) {
+        console.error('Error getting sample data:', sampleError);
+        throw sampleError;
+      }
+
+      console.log('Sample data:', sampleData);
+      return sampleData;
+    } catch (error) {
+      console.error('Error in inspectTable:', error);
+      throw error;
+    }
+  },
+
   async createPost(text: string, ownerID: string) {
     try {
+      // First inspect the table structure
+      await this.inspectTable();
+      
+      console.log('Creating post with text:', text, 'for user:', ownerID);
+      console.log('OwnerID type:', typeof ownerID);
+      console.log('OwnerID value:', ownerID);
+      
+      const postData = {
+        text,
+        ownerid: ownerID
+      };
+
+      console.log('Post data to insert:', postData);
+
       const { data, error } = await supabase
         .from('posts')
-        .insert([{ text, ownerid: ownerID, date: new Date() }])
+        .insert([postData])
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating post:', error);
-        throw error;
+        console.error('Supabase error in createPost:', error);
+        throw new Error(`Failed to create post: ${error.message}`);
       }
+
+      if (!data) {
+        throw new Error('No data returned after creating post');
+      }
+
+      console.log('Successfully created post:', data);
       return data;
     } catch (error) {
       console.error('Error in createPost:', error);
@@ -24,6 +78,20 @@ export const postController = {
   async getPosts() {
     try {
       console.log('Fetching posts from Supabase...');
+      // First try to fetch just posts
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (postsError) {
+        console.error('Error fetching posts:', postsError);
+        throw new Error(`Failed to fetch posts: ${postsError.message}`);
+      }
+
+      console.log('Successfully fetched posts:', postsData);
+
+      // Then try to fetch with relations
       const { data, error } = await supabase
         .from('posts')
         .select(`
@@ -31,11 +99,11 @@ export const postController = {
           users (name, imageurl),
           activities (*)
         `)
-        .order('date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Supabase error in getPosts:', error);
-        throw error;
+        throw new Error(`Failed to fetch posts: ${error.message}`);
       }
 
       if (!data) {
@@ -43,7 +111,7 @@ export const postController = {
         return [];
       }
 
-      console.log('Successfully fetched posts:', data);
+      console.log('Successfully fetched posts with relations:', data);
       return data;
     } catch (error) {
       console.error('Error in getPosts:', error);
@@ -56,7 +124,7 @@ export const postController = {
       const { error } = await supabase
         .from('posts')
         .delete()
-        .match({ postid: postID, ownerid: ownerID });
+        .match({ postID, ownerid: ownerID });
 
       if (error) {
         console.error('Error deleting post:', error);
@@ -71,6 +139,21 @@ export const postController = {
 
   async getUserPosts(userID: string) {
     try {
+      // First try to fetch just posts
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('ownerid', userID)
+        .order('created_at', { ascending: false });
+
+      if (postsError) {
+        console.error('Error fetching user posts:', postsError);
+        throw new Error(`Failed to fetch user posts: ${postsError.message}`);
+      }
+
+      console.log('Successfully fetched user posts:', postsData);
+
+      // Then try to fetch with relations
       const { data, error } = await supabase
         .from('posts')
         .select(`
@@ -79,7 +162,7 @@ export const postController = {
           activities (*)
         `)
         .eq('ownerid', userID)
-        .order('date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error getting user posts:', error);

@@ -4,10 +4,22 @@ import { authController } from '@/controllers/authController';
 export async function POST(request: Request) {
   try {
     const { name, password, imageURL } = await request.json();
+    
+    if (!name || !password) {
+      return NextResponse.json(
+        { error: 'Name and password are required' },
+        { status: 400 }
+      );
+    }
+
     const result = await authController.register(name, password, imageURL);
     return NextResponse.json(result);
-  } catch (error) {
-    return NextResponse.json({ error: 'Registration failed' }, { status: 400 });
+  } catch (error: any) {
+    console.error('Registration API error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Registration failed' },
+      { status: 400 }
+    );
   }
 }
 

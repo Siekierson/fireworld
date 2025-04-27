@@ -2,7 +2,8 @@ export interface User {
   userID: string;
   name: string;
   password: string;
-  imageURL: string;
+  imageURL?: string;
+  created_at: string;
 }
 
 export interface Message {
@@ -10,20 +11,20 @@ export interface Message {
   userID: string;
   message: string;
   toWhoID: string;
-  date: Date;
+  created_at: string;
 }
 
 export interface Post {
   postID: string;
-  date: Date;
   text: string;
-  ownerID: string;
+  ownerid: string;
+  created_at: string;
   users?: {
     name: string;
-    imageURL: string;
+    imageurl?: string;
   };
   activities?: Array<{
-    type: 'Like' | 'Comment';
+    type: 'like' | 'comment';
     userID: string;
     message?: string;
   }>;
@@ -31,10 +32,11 @@ export interface Post {
 
 export interface Activity {
   activityID: string;
-  type: 'Like' | 'Comment';
+  type: 'like' | 'comment';
   postID: string;
+  userID: string;
   message?: string;
-  date: Date;
+  created_at: string;
 }
 
 export interface NewsApiArticle {

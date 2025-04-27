@@ -7,7 +7,15 @@ const nextConfig = {
   },
   srcDir: 'src',
   images: {
-    domains: ['avatars.githubusercontent.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      }
+    ],
+  },
+  env: {
+    NEWS_API_KEY: process.env.NEWS_API_KEY,
   },
 };
 

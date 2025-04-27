@@ -10,7 +10,7 @@ export const messageController = {
           userID,
           message,
           toWhoID,
-          date: new Date()
+          created_at: new Date()
         }])
         .select()
         .single();
@@ -32,7 +32,7 @@ export const messageController = {
         `)
         .or(`userID.eq.${userID},toWhoID.eq.${userID}`)
         .or(`userID.eq.${otherUserID},toWhoID.eq.${otherUserID}`)
-        .order('date', { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       return data;

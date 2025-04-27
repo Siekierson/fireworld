@@ -42,7 +42,7 @@ export default function Profile() {
           ]);
 
           setUser(userData);
-          setPosts(postsData.filter((post: Post) => post.ownerID === userData.userID));
+          setPosts(postsData.filter((post: Post) => post.ownerid === userData.userID));
         } else {
           localStorage.removeItem('token');
           router.push('/login');

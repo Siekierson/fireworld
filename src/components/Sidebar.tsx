@@ -10,6 +10,7 @@ import {
   ChatBubbleLeftRightIcon,
   ArrowLeftOnRectangleIcon
 } from '@heroicons/react/24/outline';
+import ChatAssistant from './ChatAssistant';
 
 export default function Sidebar() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 h-screen bg-pink-500backdrop-blur-lg p-6 flex flex-col fixed ">
+    <div className="w-64 h-screen bg-gray-800 backdrop-blur-lg p-6 flex flex-col fixed">
       <div className="flex items-center space-x-4 mb-8">
         <Image
           src="/logo.png"
@@ -59,10 +60,10 @@ export default function Sidebar() {
           height={40}
           className="rounded-lg"
         />
-        <h1 className="text-2xlfont-bold text-orange-500">FireWorld</h1>
+        <h1 className="text-2xl font-bold text-orange-500">FireWorld</h1>
       </div>
 
-      <nav className="flex-1">
+      <nav className="flex-none">
         <ul className="space-y-4">
           <li>
             <Link
@@ -93,6 +94,10 @@ export default function Sidebar() {
           </li>
         </ul>
       </nav>
+
+      <div className="flex-1 mt-4 mb-4">
+        <ChatAssistant />
+      </div>
 
       {user && (
         <div className="border-t border-white/10 pt-4">

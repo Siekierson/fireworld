@@ -72,7 +72,7 @@ export default function PostCard({ post }: PostCardProps) {
             <div>
               <h3 className="font-semibold text-lg">{post.users.name}</h3>
               <p className="text-sm text-gray-600">
-                {new Date(post.date).toLocaleDateString('en-US', {
+                {new Date(post.created_at).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',

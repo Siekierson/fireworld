@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { NewsApiArticle } from '@/types/database';
 
-const API_KEY = process.env.NEWS_API_KEY;
+const API_KEY = process.env.NEXT_PUBLIC_NEWS_API_KEY;
 const BASE_URL = 'https://api.thenewsapi.com/v1/news/top';
 
 if (!API_KEY) {

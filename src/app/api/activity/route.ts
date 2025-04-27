@@ -11,10 +11,22 @@ export async function POST(request: Request) {
 
     const user = authController.verifyToken(token) as { userID: string };
     const { type, postID, message } = await request.json();
+
+    if (!type || !postID) {
+      return NextResponse.json(
+        { error: 'Type and postID are required' },
+        { status: 400 }
+      );
+    }
+
     const activity = await activityController.createActivity(type, postID, user.userID, message);
     return NextResponse.json(activity);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create activity' }, { status: 400 });
+    console.error('Error in POST /api/activity:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to create activity' },
+      { status: 400 }
+    );
   }
 }
 

@@ -10,29 +10,45 @@ interface CreatePostProps {
 export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
 
     setLoading(true);
+    setError(null);
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('You must be logged in to create a post');
+      }
+
+      console.log('Token:', token);
+      const decodedToken = JSON.parse(atob(token.split('.')[1]));
+      console.log('Decoded token:', decodedToken);
+      console.log('User ID from token:', decodedToken.userID);
+
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ text })
       });
 
-      if (response.ok) {
-        const newPost = await response.json();
-        onPostCreated(newPost);
-        setText('');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create post');
       }
+
+      onPostCreated(data);
+      setText('');
     } catch (error) {
       console.error('Error creating post:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create post');
     } finally {
       setLoading(false);
     }
@@ -54,6 +70,11 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
           </span>
         </div>
       </div>
+      {error && (
+        <div className="mb-4 text-red-500 text-sm">
+          {error}
+        </div>
+      )}
       <div className="flex justify-end">
         <button
           type="submit"

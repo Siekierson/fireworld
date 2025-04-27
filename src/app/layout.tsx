@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import ChatAssistant from '@/components/ChatAssistant'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,9 +17,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen flex flex-col items-center justify-center`}>
-        <div className="w-full max-w-7xl mx-auto px-4">
-          {children}
+      <body className={`${inter.className} min-h-screen`}>
+        <div className="flex h-screen">
+          <main className="flex-1 overflow-y-auto">
+            <div className="w-full max-w-7xl mx-auto px-4">
+              {children}
+            </div>
+          </main>
+        
         </div>
       </body>
     </html>
