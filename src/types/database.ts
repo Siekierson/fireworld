@@ -27,6 +27,11 @@ export interface Post {
     type: 'like' | 'comment';
     userid: string;
     message?: string;
+    created_at: string;
+    users?: {
+      name: string;
+      imageurl?: string;
+    };
   }>;
 }
 
@@ -37,6 +42,10 @@ export interface Activity {
   userid: string;
   message?: string;
   created_at: string;
+  users?: {
+    name: string;
+    imageurl?: string;
+  };
 }
 
 export interface NewsApiArticle {

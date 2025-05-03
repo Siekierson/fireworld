@@ -37,7 +37,7 @@ export const activityController = {
 
       // Create new activity (like or comment)
       console.log('Creating new activity...');
-      const { data, error } = await supabase
+      const { data: activity, error: activityError } = await supabase
         .from('activities')
         .insert([{
           type,
@@ -45,13 +45,22 @@ export const activityController = {
           userid,
           message
         }])
-        .select()
+        .select(`
+          activityid,
+          type,
+          postid,
+          userid,
+          message,
+          created_at,
+          users:userid (name, imageurl)
+        `)
         .single();
 
-      console.log('Insert result:', { data, error });
+      console.log('Insert result:', { activity, activityError });
 
-      if (error) throw error;
-      return data;
+      if (activityError) throw activityError;
+
+      return activity;
     } catch (error) {
       console.error('Error in createActivity:', error);
       throw error;
@@ -63,8 +72,13 @@ export const activityController = {
       const { data, error } = await supabase
         .from('activities')
         .select(`
-          *,
-          users (name, imageurl)
+          activityid,
+          type,
+          postid,
+          userid,
+          message,
+          created_at,
+          users:userid (name, imageurl)
         `)
         .eq('postid', postid)
         .order('created_at', { ascending: false });

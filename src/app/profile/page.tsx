@@ -13,6 +13,29 @@ export default function Profile() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserPosts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+
+      const postsResponse = await fetch('/api/posts', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (postsResponse.ok) {
+        const postsData = await postsResponse.json();
+        setPosts(postsData.filter((post: Post) => post.ownerid === user.userID));
+      }
+    } catch (error) {
+      console.error('Error fetching user posts:', error);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -92,7 +115,11 @@ export default function Profile() {
 
         <div className="space-y-6">
           {posts.map((post) => (
-            <PostCard key={post.postID} post={post} />
+            <PostCard 
+              key={post.postid} 
+              post={post} 
+              onPostUpdated={fetchUserPosts}
+            />
           ))}
           {posts.length === 0 && (
             <div className="text-center text-gray-400 py-8">

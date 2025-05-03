@@ -14,6 +14,27 @@ export default function Feed() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchPosts = async () => {
+    try {
+      const postsResponse = await fetch('/api/posts');
+      if (!postsResponse.ok) {
+        throw new Error('Failed to fetch posts');
+      }
+      const postsData = await postsResponse.json();
+      if (!Array.isArray(postsData)) {
+        console.error('Posts data is not an array:', postsData);
+        setPosts([]);
+        setError('Invalid posts data format');
+        return;
+      }
+      setPosts(postsData);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      setError('Failed to load posts');
+      setPosts([]);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);
@@ -77,7 +98,11 @@ export default function Feed() {
           </div>
         ) : posts.length > 0 ? (
           posts.map((post) => (
-            <PostCard key={`${post.postID}-${post.created_at}`} post={post} />
+            <PostCard 
+              key={`${post.postid}-${post.created_at}`} 
+              post={post} 
+              onPostUpdated={fetchPosts}
+            />
           ))
         ) : (
           <div className="text-center text-gray-400 py-8 bg-white/5 rounded-lg">

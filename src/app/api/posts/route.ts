@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { postController } from '@/controllers/postController';
 import { authController } from '@/controllers/authController';
 import jwt from 'jsonwebtoken';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -53,7 +54,24 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     console.log('GET /api/posts called');
-    const posts = await postController.getPosts();
+    const { data: posts, error: postsError } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        users:ownerid (name, imageurl),
+        activities (
+          activityid,
+          type,
+          userid,
+          message,
+          created_at,
+          users:userid (name, imageurl)
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (postsError) throw postsError;
+
     console.log('Posts fetched successfully:', posts);
     return NextResponse.json(posts);
   } catch (error) {
