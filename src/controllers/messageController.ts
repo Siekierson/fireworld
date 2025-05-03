@@ -44,11 +44,18 @@ export const messageController = {
   subscribeToMessages(userID: string, callback: (message: Message) => void) {
     const subscription = supabase
       .channel('messages')
-      .on('INSERT', (payload) => {
-        if (payload.new.toWhoID === userID) {
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `toWhoID=eq.${userID}`
+        },
+        (payload) => {
           callback(payload.new as Message);
         }
-      })
+      )
       .subscribe();
 
     return () => {

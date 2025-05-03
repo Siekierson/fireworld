@@ -1,26 +1,27 @@
 import React from 'react';
-import { Comment } from '@/models/Comment';
+import { Activity } from '@/types/database';
 import CommentItem from './CommentItem';
 
 interface CommentListProps {
-  comments: Comment[];
+  comments: Activity[];
   currentUserId: string;
-  onLike: (commentId: string) => Promise<void>;
+  onLike: (commentId: string) => void;
 }
 
 const CommentList: React.FC<CommentListProps> = ({
   comments,
   currentUserId,
-  onLike
+  onLike,
 }) => {
   return (
     <div className="space-y-4">
       {comments.map((comment) => (
         <CommentItem
-          key={comment._id?.toString()}
+          key={comment.activityid}
           comment={comment}
-          currentUserId={currentUserId}
           onLike={onLike}
+          isLiked={comment.userid === currentUserId}
+          likeCount={0} // TODO: Implement like count for comments
         />
       ))}
     </div>
