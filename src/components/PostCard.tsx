@@ -11,13 +11,21 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.activities?.filter(a => a.type === 'like').length || 0);
   const [showComments, setShowComments] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);
-  }, []);
+    
+    // Check if the current user has liked this post
+    const userLiked = post.activities?.some(
+      activity => activity.type === 'like' && activity.userid === JSON.parse(atob(token?.split('.')[1] || '{}')).userID
+    );
+    setLiked(!!userLiked);
+  }, [post.activities]);
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -25,24 +33,49 @@ export default function PostCard({ post }: PostCardProps) {
       return;
     }
 
+    if (isLoading) return;
+
+    setIsLoading(true);
     try {
+      console.log('Post object:', post);
+      const requestBody = {
+        type: 'like',
+        postid: post.postid
+      };
+      console.log('Sending like request:', requestBody);
+
       const response = await fetch('/api/activity', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          type: 'Like',
-          postid: post.postid
-        })
+        body: JSON.stringify(requestBody)
       });
 
-      if (response.ok) {
+      console.log('Like response status:', response.status);
+      const responseText = await response.text();
+      console.log('Like response text:', responseText);
+
+      if (!response.ok) {
+        throw new Error(`Failed to like post: ${responseText}`);
+      }
+
+      const data = JSON.parse(responseText);
+      console.log('Like response data:', data);
+      
+      // Update like state and count
+      if (data.type === 'unlike') {
+        setLiked(false);
+        setLikeCount(prev => Math.max(0, prev - 1));
+      } else {
         setLiked(true);
+        setLikeCount(prev => prev + 1);
       }
     } catch (error) {
       console.error('Error liking post:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,15 +123,20 @@ export default function PostCard({ post }: PostCardProps) {
       <div className="flex items-center space-x-6 border-t border-gray-200 pt-4">
         <button
           onClick={handleLike}
-          className="flex items-center space-x-2 text-sm hover:text-orange-500 transition"
+          disabled={isLoading}
+          className={`flex items-center space-x-2 text-sm transition-all duration-200 ${
+            liked 
+              ? 'text-red-500 hover:text-red-600' 
+              : 'hover:text-orange-500'
+          } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           title={!isAuthenticated ? "Login to like" : ""}
         >
           {liked ? (
-            <HeartSolidIcon className="h-5 w-5 text-red-500" />
+            <HeartSolidIcon className="h-5 w-5 animate-pulse" />
           ) : (
             <HeartIcon className="h-5 w-5" />
           )}
-          <span>{post.activities?.filter(a => a.type === 'Like').length || 0}</span>
+          <span className="font-medium">{likeCount}</span>
         </button>
 
         <button
@@ -107,14 +145,14 @@ export default function PostCard({ post }: PostCardProps) {
           title={!isAuthenticated ? "Login to comment" : ""}
         >
           <ChatBubbleLeftIcon className="h-5 w-5" />
-          <span>{post.activities?.filter(a => a.type === 'Comment').length || 0}</span>
+          <span>{post.activities?.filter(a => a.type === 'comment').length || 0}</span>
         </button>
       </div>
 
       {showComments && post.activities && (
         <div className="mt-4 space-y-2">
           {post.activities
-            .filter(a => a.type === 'Comment')
+            .filter(a => a.type === 'comment')
             .map((comment, index) => (
               <div key={index} className="bg-white/50 rounded-lg p-3">
                 <p className="text-sm text-gray-800">{comment.message}</p>

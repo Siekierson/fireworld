@@ -10,16 +10,25 @@ export async function POST(request: Request) {
     }
 
     const user = authController.verifyToken(token) as { userID: string };
-    const { type, postID, message } = await request.json();
+    console.log('Verified user:', user);
 
-    if (!type || !postID) {
+    const body = await request.json();
+    console.log('Request body:', body);
+    
+    const { type, postid, message } = body;
+
+    if (!type || !postid) {
+      console.log('Missing required fields:', { type, postid });
       return NextResponse.json(
-        { error: 'Type and postID are required' },
+        { error: 'Type and postid are required' },
         { status: 400 }
       );
     }
 
-    const activity = await activityController.createActivity(type, postID, user.userID, message);
+    console.log('Creating activity with:', { type, postid, userid: user.userID, message });
+    const activity = await activityController.createActivity(type, postid, user.userID, message);
+    console.log('Created activity:', activity);
+    
     return NextResponse.json(activity);
   } catch (error) {
     console.error('Error in POST /api/activity:', error);

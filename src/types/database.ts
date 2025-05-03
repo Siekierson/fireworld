@@ -15,7 +15,7 @@ export interface Message {
 }
 
 export interface Post {
-  postID: string;
+  postid: string;
   text: string;
   ownerid: string;
   created_at: string;
@@ -25,16 +25,16 @@ export interface Post {
   };
   activities?: Array<{
     type: 'like' | 'comment';
-    userID: string;
+    userid: string;
     message?: string;
   }>;
 }
 
 export interface Activity {
-  activityID: string;
+  activityid: string;
   type: 'like' | 'comment';
-  postID: string;
-  userID: string;
+  postid: string;
+  userid: string;
   message?: string;
   created_at: string;
 }
