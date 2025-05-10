@@ -51,8 +51,8 @@ export default function ChatAssistant() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white/10 backdrop-blur-lg text-white">
-      <div className="p-4 border-b border-white/10">
+    <div className="flex flex-col h-[600px] bg-white/10 backdrop-blur-lg text-white">
+      <div className="flex-none p-4 border-b border-white/10">
         <h2 className="text-lg font-semibold text-orange-500">AI Assistant</h2>
       </div>
       
@@ -84,24 +84,26 @@ export default function ChatAssistant() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t border-white/10">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 p-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
-          >
-            <Send size={20} />
-          </button>
-        </div>
-      </form>
+      <div className="flex-none p-4 border-t border-white/10">
+        <form onSubmit={handleSubmit}>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1 min-w-0 p-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-none p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+            >
+              <Send size={20} />
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 } 
