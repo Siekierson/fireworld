@@ -51,7 +51,7 @@ export default function ChatAssistant() {
   };
 
   return (
-    <div className="flex flex-col h-[600px] bg-white/10 backdrop-blur-lg text-white">
+    <div className="flex flex-col h-full bg-white/10 backdrop-blur-lg text-white">
       <div className="flex-none p-4 border-b border-white/10">
         <h2 className="text-lg font-semibold text-orange-500">AI Assistant</h2>
       </div>

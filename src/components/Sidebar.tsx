@@ -51,8 +51,8 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 h-screen bg-gray-800 backdrop-blur-lg p-6 flex flex-col fixed">
-      <div className="flex items-center space-x-4 mb-8">
+    <div className="w-64 h-screen bg-gray-800 backdrop-blur-lg p-6 flex flex-col fixed left-0 top-0">
+      <div className="flex-none flex items-center space-x-4 mb-8">
         <Image
           src="/logo.png"
           alt="FireWorld Logo"
@@ -95,12 +95,12 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      <div className="flex-1 mt-4 mb-4">
+      <div className="flex-1 mt-4 mb-4 min-h-0 overflow-hidden">
         <ChatAssistant />
       </div>
 
       {user && (
-        <div className="border-t border-white/10 pt-4">
+        <div className="flex-none border-t border-white/10 pt-4 mt-auto">
           <div className="flex items-center space-x-4 mb-4">
             {user.imageURL ? (
               <Image
