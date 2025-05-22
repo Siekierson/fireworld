@@ -98,8 +98,8 @@ export default function Profile() {
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 mb-8">
           <div className="flex items-center space-x-6">
             <Image
-              src={user.imageURL}
-              alt={user.name}
+              src={user.imageURL || '/default-avatar.png'}
+              alt={user.name || 'User'}
               width={120}
               height={120}
               className="rounded-full"

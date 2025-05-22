@@ -108,8 +108,8 @@ export default function Messages() {
                     }`}
                   >
                     <Image
-                      src={u.imageURL}
-                      alt={u.name}
+                      src={u.imageURL || '/default-avatar.png'}
+                      alt={u.name || 'User'}
                       width={40}
                       height={40}
                       className="rounded-full"
@@ -127,8 +127,8 @@ export default function Messages() {
                 <div className="p-4 border-b border-white/10">
                   <div className="flex items-center space-x-3">
                     <Image
-                      src={selectedUser.imageURL}
-                      alt={selectedUser.name}
+                      src={selectedUser.imageURL || '/default-avatar.png'}
+                      alt={selectedUser.name || 'User'}
                       width={40}
                       height={40}
                       className="rounded-full"

@@ -9,7 +9,7 @@ export default function Home() {
       <div className="fixed left-0 top-0 h-full w-64">
         <Sidebar />
       </div>
-      <div className="ml-64 flex-1 flex justify-center">
+      <div className="ml-10 flex-1 flex justify-center">
         <div className="w-full max-w-2xl px-4 py-8">
           <Feed />
         </div>

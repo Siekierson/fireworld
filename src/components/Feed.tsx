@@ -75,51 +75,47 @@ export default function Feed() {
     fetchData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <div className="animate-pulse text-orange-500">Loading...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {isAuthenticated && (
-        <div className="mb-6">
-          <CreatePost onPostCreated={(newPost) => setPosts([newPost, ...posts])} />
+    <div className="space-y-6 max-w-full">
+      {isAuthenticated && <CreatePost onPostCreated={fetchPosts} />}
+      
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-500">
+          {error}
         </div>
       )}
-      
-      <div className="space-y-4">
-        {error ? (
-          <div className="text-center text-gray-400 py-8 bg-white/5 rounded-lg">
-            {error === 'Failed to load posts' ? 'No posts available' : error}
-          </div>
-        ) : posts.length > 0 ? (
-          posts.map((post) => (
-            <PostCard 
-              key={`${post.postid}-${post.created_at}`} 
-              post={post} 
-              onPostUpdated={fetchPosts}
-            />
-          ))
-        ) : (
-          <div className="text-center text-gray-400 py-8 bg-white/5 rounded-lg">
-            No posts available
-          </div>
-        )}
-      </div>
 
-      {news.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Latest News</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {news.map((item, index) => (
-              <NewsCard key={index} article={item} />
-            ))}
-          </div>
+      {loading ? (
+        <div className="flex justify-center">
+          <div className="animate-pulse text-orange-500">Loading...</div>
         </div>
+      ) : (
+        <>
+          {posts.length > 0 ? (
+            posts.map((post) => (
+              <PostCard
+                key={post.postid}
+                post={post}
+                onPostUpdated={fetchPosts}
+              />
+            ))
+          ) : (
+            <div className="text-center text-gray-400 py-8">
+              No posts yet. Be the first to post something!
+            </div>
+          )}
+
+          {news.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold text-white mb-4">Latest News</h2>
+              <div className="space-y-4">
+                {news.map((item, index) => (
+                  <NewsCard key={index} article={item} />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

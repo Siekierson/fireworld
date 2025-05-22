@@ -128,14 +128,14 @@ export default function PostCard({ post, onPostUpdated }: PostCardProps) {
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-md rounded-xl p-6 shadow-lg text-black transition-all hover:bg-white">
+    <div className="bg-white/90 backdrop-blur-md rounded-xl p-6 shadow-lg text-black transition-all hover:bg-white max-w-full">
       <div className="flex items-center space-x-4 mb-4">
         {post.users && (
           <>
             <div className="relative w-12 h-12">
               <img
-                src={post.users.imageurl || '/default-avatar.png'}
-                alt={post.users.name}
+                src={post.users?.imageurl || '/default-avatar.png'}
+                alt={post.users?.name || 'User'}
                 className="w-full h-full rounded-full object-cover"
                 onError={(e) => {
                   e.currentTarget.src = '/default-avatar.png';
