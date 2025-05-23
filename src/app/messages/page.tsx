@@ -46,16 +46,54 @@ export default function Messages() {
   }, [router]);
 
   useEffect(() => {
-    if (user) {
-      const unsubscribe = messageController.subscribeToMessages(user.userID, (message) => {
-        setMessages((prev) => [...prev, message]);
-      });
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
-      return () => {
-        unsubscribe();
-      };
-    }
-  }, [user]);
+        const response = await fetch('/api/users', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const usersData = await response.json();
+          setUsers(usersData);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!user || !selectedUser) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch(`/api/messages?otherUserID=${selectedUser.userID}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const messagesData = await response.json();
+          setMessages(messagesData);
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+
+    fetchMessages();
+  }, [user, selectedUser]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -93,10 +131,12 @@ export default function Messages() {
       <Sidebar />
       <div className="flex-1 container mx-auto px-4 py-8 pl-72">
         <div className="bg-white/10 backdrop-blur-md rounded-xl h-[calc(100vh-4rem)] flex overflow-hidden">
-          <div className="w-72 border-r border-white/10">
-            <div className="p-4">
-              <h2 className="text-xl font-semibold text-white mb-4">Messages</h2>
-              <div className="space-y-2">
+          <div className="w-80 border-r border-white/10 flex flex-col">
+            <div className="p-4 border-b border-white/10">
+              <h2 className="text-xl font-semibold text-white">Messages</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-2 space-y-1">
                 {users.map((u) => (
                   <button
                     key={u.userID}
@@ -114,7 +154,7 @@ export default function Messages() {
                       height={40}
                       className="rounded-full"
                     />
-                    <span>{u.name}</span>
+                    <span className="font-medium">{u.name}</span>
                   </button>
                 ))}
               </div>
@@ -124,7 +164,7 @@ export default function Messages() {
           <div className="flex-1 flex flex-col">
             {selectedUser ? (
               <>
-                <div className="p-4 border-b border-white/10">
+                <div className="p-4 border-b border-white/10 bg-white/5">
                   <div className="flex items-center space-x-3">
                     <Image
                       src={selectedUser.imageURL || '/default-avatar.png'}
@@ -133,9 +173,12 @@ export default function Messages() {
                       height={40}
                       className="rounded-full"
                     />
-                    <h3 className="text-lg font-semibold text-white">
-                      {selectedUser.name}
-                    </h3>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        {selectedUser.name}
+                      </h3>
+                      <p className="text-sm text-gray-400">Online</p>
+                    </div>
                   </div>
                 </div>
 
@@ -154,7 +197,7 @@ export default function Messages() {
                             : 'bg-white/10 text-white'
                         }`}
                       >
-                        <p>{message.message}</p>
+                        <p className="break-words">{message.message}</p>
                         <p className="text-xs mt-1 opacity-70">
                           {new Date(message.created_at).toLocaleTimeString()}
                         </p>
@@ -164,19 +207,19 @@ export default function Messages() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10">
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10 bg-white/5">
                   <div className="flex space-x-4">
                     <input
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder="Type a message..."
-                      className="flex-1 bg-white/5 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="flex-1 bg-white/5 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-400"
                     />
                     <button
                       type="submit"
                       disabled={!newMessage.trim()}
-                      className="px-6 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50"
+                      className="px-6 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Send
                     </button>
@@ -185,7 +228,10 @@ export default function Messages() {
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center text-gray-400">
-                Select a user to start messaging
+                <div className="text-center">
+                  <p className="text-xl mb-2">Select a user to start messaging</p>
+                  <p className="text-sm opacity-75">Choose from the list on the left</p>
+                </div>
               </div>
             )}
           </div>
