@@ -53,7 +53,8 @@ export async function setJWTContext(token: string) {
 // Helper function to check realtime connection status
 export async function checkRealtimeConnection() {
   try {
-    const status = await supabase.realtime.getStatus();
+    const channels = await supabase.realtime.getChannels();
+    const status = channels.length > 0 ? 'connected' : 'disconnected';
     console.log('Realtime connection status:', status);
     return status;
   } catch (error) {
