@@ -1,6 +1,63 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
+console.log('Initializing Supabase client with URL:', supabaseUrl);
+
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  },
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: {
+      'x-application-name': 'fireworld'
+    }
+  }
+});
+
+// Function to set JWT context for database operations
+export async function setJWTContext(token: string) {
+  try {
+    // Decode the JWT token to get the payload
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    console.log('Setting JWT context with payload:', { userID: payload.userID, name: payload.name });
+    
+    // Set the JWT context with the decoded payload
+    const { error } = await supabase.rpc('set_jwt_context', {
+      jwt_token: JSON.stringify(payload)
+    });
+    
+    if (error) {
+      console.error('Error setting JWT context:', error);
+      throw error;
+    }
+    
+    console.log('JWT context set successfully');
+  } catch (error) {
+    console.error('Error in setJWTContext:', error);
+    throw error;
+  }
+}
+
+// Helper function to check realtime connection status
+export async function checkRealtimeConnection() {
+  try {
+    const status = await supabase.realtime.getStatus();
+    console.log('Realtime connection status:', status);
+    return status;
+  } catch (error) {
+    console.error('Error checking realtime status:', error);
+    throw error;
+  }
+} 

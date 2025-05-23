@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Sidebar from '@/components/Sidebar';
 import { Message } from '@/types/database';
 import { messageController } from '@/controllers/messageController';
+import { supabase } from '@/lib/supabase';
 
 export default function Messages() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function Messages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const subscriptionRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -70,12 +72,133 @@ export default function Messages() {
   }, []);
 
   useEffect(() => {
+    if (!user?.userID) {
+      console.log('Cannot setup subscription - no user ID');
+      return;
+    }
+
+    console.log('Setting up message subscription for user:', user.userID);
+    
+    if (subscriptionRef.current) {
+      console.log('Cleaning up previous subscription');
+      subscriptionRef.current();
+    }
+
+    let isSubscribed = true;
+    const processedMessageIds = new Set<string>();
+
+    const setupSubscription = async () => {
+      try {
+        const cleanup = await messageController.subscribeToMessages(user.userID, (message) => {
+          if (!isSubscribed) {
+            console.log('Component unmounted, ignoring message');
+            return;
+          }
+
+          if (processedMessageIds.has(message.messageID)) {
+            console.log('Message already processed, skipping:', message.messageID);
+            return;
+          }
+
+          console.log('Received message in component:', {
+            messageID: message.messageID,
+            from: message.userID,
+            to: message.toWhoID,
+            selectedUser: selectedUser?.userID,
+            currentUser: user.userID,
+            message: message.message,
+            timestamp: message.created_at,
+            isTestMessage: message.message === 'Test message from subscription'
+          });
+
+          if (message.message === 'Test message from subscription') {
+            console.log('Ignoring test message');
+            return;
+          }
+
+          if (message.toWhoID === user.userID || message.userID === user.userID) {
+            console.log('Message is for current user, checking if it should be displayed');
+            
+            if (selectedUser) {
+              if (message.userID === selectedUser.userID || message.toWhoID === selectedUser.userID) {
+                console.log('Message is for current conversation, adding to chat');
+                setMessages((prev) => {
+                  const exists = prev.some(m => m.messageID === message.messageID);
+                  if (exists) {
+                    console.log('Message already exists in chat, skipping');
+                    return prev;
+                  }
+                  processedMessageIds.add(message.messageID);
+                  const newMessages = [...prev, message].sort((a, b) => 
+                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                  );
+                  console.log('Added new message to chat, total messages:', newMessages.length);
+                  return newMessages;
+                });
+              } else {
+                console.log('Message is not for current conversation, skipping');
+              }
+            } else {
+              console.log('No user selected, but message is for current user - storing for later');
+              setMessages((prev) => {
+                const exists = prev.some(m => m.messageID === message.messageID);
+                if (exists) return prev;
+                processedMessageIds.add(message.messageID);
+                const newMessages = [...prev, message].sort((a, b) => 
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                );
+                console.log('Stored message for later, total messages:', newMessages.length);
+                return newMessages;
+              });
+            }
+          } else {
+            console.log('Message is not for current user, skipping');
+          }
+        });
+
+        subscriptionRef.current = cleanup;
+      } catch (error) {
+        console.error('Error setting up subscription:', error);
+      }
+    };
+
+    setupSubscription();
+
+    return () => {
+      console.log('Cleaning up subscription on unmount for user:', user.userID);
+      isSubscribed = false;
+      processedMessageIds.clear();
+      if (subscriptionRef.current) {
+        subscriptionRef.current();
+        subscriptionRef.current = null;
+      }
+    };
+  }, [user?.userID, selectedUser?.userID]);
+
+  useEffect(() => {
     const fetchMessages = async () => {
-      if (!user || !selectedUser) return;
+      if (!user?.userID || !selectedUser?.userID) {
+        console.log('Cannot fetch messages - missing user data:', {
+          hasCurrentUser: !!user?.userID,
+          hasSelectedUser: !!selectedUser?.userID,
+          currentUserID: user?.userID,
+          selectedUserID: selectedUser?.userID
+        });
+        return;
+      }
 
       try {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token) {
+          console.log('No token available for fetching messages');
+          return;
+        }
+
+        console.log('Fetching messages for users:', {
+          currentUser: user.userID,
+          selectedUser: selectedUser.userID,
+          timestamp: new Date().toISOString()
+        });
 
         const response = await fetch(`/api/messages?otherUserID=${selectedUser.userID}`, {
           headers: {
@@ -85,15 +208,35 @@ export default function Messages() {
 
         if (response.ok) {
           const messagesData = await response.json();
-          setMessages(messagesData);
+          const sortedMessages = messagesData.sort((a: Message, b: Message) => 
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+          console.log('Fetched messages:', {
+            count: sortedMessages.length,
+            firstMessage: sortedMessages[0]?.created_at,
+            lastMessage: sortedMessages[sortedMessages.length - 1]?.created_at,
+            currentUser: user.userID,
+            selectedUser: selectedUser.userID
+          });
+          setMessages(sortedMessages);
+        } else {
+          console.error('Failed to fetch messages:', {
+            status: response.status,
+            currentUser: user.userID,
+            selectedUser: selectedUser.userID
+          });
         }
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Error fetching messages:', {
+          error,
+          currentUser: user.userID,
+          selectedUser: selectedUser.userID
+        });
       }
     };
 
     fetchMessages();
-  }, [user, selectedUser]);
+  }, [user?.userID, selectedUser?.userID]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -101,7 +244,7 @@ export default function Messages() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedUser) return;
+    if (!newMessage.trim() || !selectedUser || !user) return;
 
     try {
       const response = await fetch('/api/messages', {
@@ -111,14 +254,12 @@ export default function Messages() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          message: newMessage,
+          message: newMessage.trim(),
           toWhoID: selectedUser.userID
         })
       });
 
       if (response.ok) {
-        const message = await response.json();
-        setMessages((prev) => [...prev, message]);
         setNewMessage('');
       }
     } catch (error) {
@@ -129,7 +270,7 @@ export default function Messages() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-orange-900 via-red-800 to-red-900">
       <Sidebar />
-      <div className="flex-1 container mx-auto px-4 py-8 pl-72">
+      <div className="flex-1 container mx-auto px-4 py-8">
         <div className="bg-white/10 backdrop-blur-md rounded-xl h-[calc(100vh-4rem)] flex overflow-hidden">
           <div className="w-80 border-r border-white/10 flex flex-col">
             <div className="p-4 border-b border-white/10">

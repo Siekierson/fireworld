@@ -12,6 +12,10 @@ export interface Message {
   message: string;
   toWhoID: string;
   created_at: string;
+  users?: {
+    name: string;
+    imageURL: string;
+  } | null;
 }
 
 export interface Post {
