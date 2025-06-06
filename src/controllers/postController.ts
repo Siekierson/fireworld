@@ -124,7 +124,7 @@ export const postController = {
       const { error } = await supabase
         .from('posts')
         .delete()
-        .match({ postID, ownerid: ownerID });
+        .match({ postid: postID, ownerid: ownerID });
 
       if (error) {
         console.error('Error deleting post:', error);

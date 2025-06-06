@@ -136,6 +136,10 @@ export default function Feed() {
     return interleavedFeed;
   };
 
+  const handlePostDeleted = (deletedPostId: string) => {
+    setPosts(currentPosts => currentPosts.filter(post => post.postid !== deletedPostId));
+  };
+
   return (
     <div className="space-y-6 max-w-full">
       {isAuthenticated && <CreatePost onPostCreated={() => {
@@ -174,6 +178,7 @@ export default function Feed() {
                     fetchPosts(1).then(newPosts => setPosts(newPosts));
                     fetchNews(1).then(newNews => setNews(newNews));
                   }}
+                  onPostDeleted={handlePostDeleted}
                 />
               ) : (
                 <NewsCard article={item.content} />

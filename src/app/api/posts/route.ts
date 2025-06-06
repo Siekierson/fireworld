@@ -98,10 +98,30 @@ export async function DELETE(request: Request) {
 
     const user = authController.verifyToken(token) as { userID: string };
     const { postID } = await request.json();
+
+    // First, verify that the post exists and belongs to the user
+    const { data: post, error: fetchError } = await supabase
+      .from('posts')
+      .select('ownerid')
+      .eq('postid', postID)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching post:', fetchError);
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    if (post.ownerid !== user.userID) {
+      return NextResponse.json({ error: 'You are not authorized to delete this post' }, { status: 403 });
+    }
+
     await postController.deletePost(postID, user.userID);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error in DELETE /api/posts:', error);
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
     return NextResponse.json({ error: 'Failed to delete post' }, { status: 400 });
   }
 } 

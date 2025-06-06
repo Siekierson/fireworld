@@ -318,7 +318,7 @@ export default function Messages() {
                       <h3 className="text-xl font-semibold text-orange-500">
                         {selectedUser.name}
                       </h3>
-                      <p className="text-base text-orange-400">Online</p>
+                     
                     </div>
                   </div>
                 </div>

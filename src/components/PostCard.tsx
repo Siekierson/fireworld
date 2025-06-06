@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { Post } from '@/types/database';
-import { HeartIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { HeartIcon, ChatBubbleLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 
 interface PostCardProps {
   post: Post;
   onPostUpdated?: () => void;
+  onPostDeleted?: (postId: string) => void;
 }
 
-export default function PostCard({ post, onPostUpdated }: PostCardProps) {
+export default function PostCard({ post, onPostUpdated, onPostDeleted }: PostCardProps) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.activities?.filter(a => a.type === 'like').length || 0);
   const [showComments, setShowComments] = useState(false);
@@ -18,17 +19,71 @@ export default function PostCard({ post, onPostUpdated }: PostCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [currentUserID, setCurrentUserID] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);
     
+    if (token) {
+      try {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserID(decodedToken.userID);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    }
+    
     // Check if the current user has liked this post
     const userLiked = post.activities?.some(
-      activity => activity.type === 'like' && activity.userid === JSON.parse(atob(token?.split('.')[1] || '{}')).userID
+      activity => activity.type === 'like' && activity.userid === currentUserID
     );
     setLiked(!!userLiked);
-  }, [post.activities]);
+  }, [post.activities, currentUserID]);
+
+  const handleDelete = async () => {
+    if (!isAuthenticated || !currentUserID) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (isDeleting) return;
+
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ postID: post.postid })
+      });
+
+      if (response.status === 403) {
+        alert('You are not authorized to delete this post');
+        return;
+      }
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete post');
+      }
+
+      // Call onPostDeleted callback instead of refreshing the whole feed
+      onPostDeleted?.(post.postid);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete post. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -129,33 +184,45 @@ export default function PostCard({ post, onPostUpdated }: PostCardProps) {
 
   return (
     <div className="bg-white/90 backdrop-blur-md rounded-xl p-6 shadow-lg text-black transition-all hover:bg-white max-w-full">
-      <div className="flex items-center space-x-4 mb-4">
-        {post.users && (
-          <>
-            <div className="relative w-12 h-12">
-              <img
-                src={post.users?.imageurl || '/default-avatar.png'}
-                alt={post.users?.name || 'User'}
-                className="w-full h-full rounded-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = '/default-avatar.png';
-                }}
-              />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">{post.users.name}</h3>
-              <p className="text-sm text-gray-600">
-                {new Date(post.created_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-            </div>
-          </>
-        )}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          {post.users && (
+            <>
+              <div className="relative w-12 h-12">
+                <img
+                  src={post.users?.imageurl || '/default-avatar.png'}
+                  alt={post.users?.name || 'User'}
+                  className="w-full h-full rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = '/default-avatar.png';
+                  }}
+                />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">{post.users.name}</h3>
+                <p className="text-sm text-gray-600">
+                  {new Date(post.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+        <button
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className={`p-2 text-gray-500 hover:text-red-500 transition-colors rounded-full hover:bg-red-50 ${
+            isDeleting ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title={currentUserID === post.ownerid ? "Delete post" : "You can't delete this post"}
+        >
+          <TrashIcon className="h-5 w-5" />
+        </button>
       </div>
 
       <p className="mb-4 text-gray-800">{post.text}</p>
