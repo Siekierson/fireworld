@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { activityController } from '@/controllers/activityController';
 import { authController } from '@/controllers/authController';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
@@ -48,10 +49,29 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
     }
 
-    const activities = await activityController.getPostActivities(postID);
-    return NextResponse.json(activities);
+    const { data, error } = await supabase
+      .from('activities')
+      .select(`
+        activityid,
+        type,
+        postid,
+        userid,
+        message,
+        created_at,
+        users:userid (name, imageurl)
+      `)
+      .eq('postid', postID)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching activities:', error);
+      return NextResponse.json({ error: 'Failed to fetch activities' }, { status: 400 });
+    }
+
+    return NextResponse.json(data || [], { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch activities' }, { status: 400 });
+    console.error('Error in GET /api/activity:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
