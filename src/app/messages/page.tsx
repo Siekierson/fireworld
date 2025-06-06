@@ -84,6 +84,9 @@ export default function Messages() {
       subscriptionRef.current();
     }
 
+    // Clear messages when selected user changes
+    setMessages([]);
+
     let isSubscribed = true;
     const processedMessageIds = new Set<string>();
 
@@ -116,43 +119,24 @@ export default function Messages() {
             return;
           }
 
-          if (message.toWhoID === user.userID || message.userID === user.userID) {
-            console.log('Message is for current user, checking if it should be displayed');
-            
-            if (selectedUser) {
-              if (message.userID === selectedUser.userID || message.toWhoID === selectedUser.userID) {
-                console.log('Message is for current conversation, adding to chat');
-                setMessages((prev) => {
-                  const exists = prev.some(m => m.messageID === message.messageID);
-                  if (exists) {
-                    console.log('Message already exists in chat, skipping');
-                    return prev;
-                  }
-                  processedMessageIds.add(message.messageID);
-                  const newMessages = [...prev, message].sort((a, b) => 
-                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                  );
-                  console.log('Added new message to chat, total messages:', newMessages.length);
-                  return newMessages;
-                });
-              } else {
-                console.log('Message is not for current conversation, skipping');
+          // Only add message if it's for the current conversation
+          if (selectedUser && (message.userID === selectedUser.userID || message.toWhoID === selectedUser.userID)) {
+            console.log('Message is for current conversation, adding to chat');
+            setMessages((prev) => {
+              const exists = prev.some(m => m.messageID === message.messageID);
+              if (exists) {
+                console.log('Message already exists in chat, skipping');
+                return prev;
               }
-            } else {
-              console.log('No user selected, but message is for current user - storing for later');
-              setMessages((prev) => {
-                const exists = prev.some(m => m.messageID === message.messageID);
-                if (exists) return prev;
-                processedMessageIds.add(message.messageID);
-                const newMessages = [...prev, message].sort((a, b) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                );
-                console.log('Stored message for later, total messages:', newMessages.length);
-                return newMessages;
-              });
-            }
+              processedMessageIds.add(message.messageID);
+              const newMessages = [...prev, message].sort((a, b) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              );
+              console.log('Added new message to chat, total messages:', newMessages.length);
+              return newMessages;
+            });
           } else {
-            console.log('Message is not for current user, skipping');
+            console.log('Message is not for current conversation, skipping');
           }
         });
 

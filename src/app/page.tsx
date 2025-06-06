@@ -10,7 +10,7 @@ export default function Home() {
         <Sidebar />
       </div>
       <div className="ml-10 flex-1 flex justify-center">
-        <div className="w-full max-w-2xl px-4 py-8">
+        <div className="w-full max-w-6xl px-4 py-8">
           <Feed />
         </div>
       </div>

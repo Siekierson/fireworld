@@ -46,11 +46,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-900 via-red-800 to-red-900 p-4">
-      <div className="w-full max-w-md bg-black/20 backdrop-blur-lg rounded-2xl p-8 shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br  p-4">
+      <div className="w-full max-w-md bg-black/20  rounded-2xl p-8 shadow-xl">
         <div className="flex justify-center mb-8">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-orange-500 rounded-lg" />
+            <div className="w-12 h-12 rounded-lg" />
             <h1 className="text-3xl font-bold text-orange-500">FireWorld</h1>
           </div>
         </div>
