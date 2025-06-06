@@ -9,8 +9,7 @@ export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
-    password: '',
-    imageURL: ''
+    password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -103,19 +102,6 @@ export default function Login() {
               required
             />
           </div>
-
-          {!isLogin && (
-            <div>
-              <label className="block text-gray-300 mb-2">Profile Image URL (optional)</label>
-              <input
-                type="url"
-                value={formData.imageURL}
-                onChange={(e) => setFormData({ ...formData, imageURL: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Leave empty for default avatar"
-              />
-            </div>
-          )}
 
           {error && (
             <p className="text-red-500 text-sm">{error}</p>

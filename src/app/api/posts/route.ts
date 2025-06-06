@@ -54,6 +54,11 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     console.log('GET /api/posts called');
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '5');
+    const offset = (page - 1) * limit;
+
     const { data: posts, error: postsError } = await supabase
       .from('posts')
       .select(`
@@ -68,7 +73,8 @@ export async function GET(request: Request) {
           users:userid (name, imageurl)
         )
       `)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (postsError) throw postsError;
 

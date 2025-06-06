@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Post } from '@/types/database';
 import { newsApi } from '@/lib/newsApi';
 import PostCard from './PostCard';
 import NewsCard from './NewsCard';
 import CreatePost from './CreatePost';
+
+const POSTS_PER_PAGE = 5;
+const NEWS_PER_PAGE = 5;
 
 export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -13,25 +16,35 @@ export default function Feed() {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (pageNum: number) => {
     try {
-      const postsResponse = await fetch('/api/posts');
+      const postsResponse = await fetch(`/api/posts?page=${pageNum}&limit=${POSTS_PER_PAGE}`);
       if (!postsResponse.ok) {
         throw new Error('Failed to fetch posts');
       }
       const postsData = await postsResponse.json();
       if (!Array.isArray(postsData)) {
         console.error('Posts data is not an array:', postsData);
-        setPosts([]);
-        setError('Invalid posts data format');
-        return;
+        return [];
       }
-      setPosts(postsData);
+      return postsData;
     } catch (error) {
       console.error('Error fetching posts:', error);
-      setError('Failed to load posts');
-      setPosts([]);
+      return [];
+    }
+  };
+
+  const fetchNews = async (pageNum: number) => {
+    try {
+      const newsData = await newsApi.getLatestNews(pageNum, NEWS_PER_PAGE);
+      return newsData;
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      return [];
     }
   };
 
@@ -43,30 +56,17 @@ export default function Feed() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [postsResponse, newsResponse] = await Promise.all([
-          fetch('/api/posts'),
-          newsApi.getLatestNews()
+        const [postsData, newsData] = await Promise.all([
+          fetchPosts(1),
+          fetchNews(1)
         ]);
 
-        if (!postsResponse.ok) {
-          throw new Error('Failed to fetch posts');
-        }
-
-        const postsData = await postsResponse.json();
-        
-        if (!Array.isArray(postsData)) {
-          console.error('Posts data is not an array:', postsData);
-          setPosts([]);
-          setError('Invalid posts data format');
-          return;
-        }
-
         setPosts(postsData);
-        setNews(newsResponse);
+        setNews(newsData);
+        setHasMore(postsData.length > 0 || newsData.length > 0);
       } catch (error) {
         console.error('Error fetching feed:', error);
-        setError('Failed to load posts');
-        setPosts([]);
+        setError('Failed to load content');
       } finally {
         setLoading(false);
       }
@@ -75,9 +75,77 @@ export default function Feed() {
     fetchData();
   }, []);
 
+  const handleLoadMore = async () => {
+    if (!hasMore || isLoadingMore) return;
+    
+    setIsLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const [newPosts, newNews] = await Promise.all([
+        fetchPosts(nextPage),
+        fetchNews(nextPage)
+      ]);
+
+      const hasNewContent = newPosts.length > 0 || newNews.length > 0;
+      
+      if (hasNewContent) {
+        setPosts(prev => [...prev, ...newPosts]);
+        setNews(prev => [...prev, ...newNews]);
+        setHasMore(newPosts.length > 0 || newNews.length > 0);
+        setPage(nextPage);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error('Error loading more content:', error);
+      setError('Failed to load more content');
+      setHasMore(false);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const getInterleavedFeed = () => {
+    // Convert posts to a common format
+    const formattedPosts = posts.map(post => ({
+      type: 'post',
+      content: post,
+      date: new Date(post.created_at)
+    }));
+
+    // Convert news to a common format
+    const formattedNews = news.map(article => ({
+      type: 'news',
+      content: article,
+      date: new Date(article.published_at)
+    }));
+
+    // Interleave posts and news one by one
+    const interleavedFeed = [];
+    const maxLength = Math.max(formattedPosts.length, formattedNews.length);
+    
+    for (let i = 0; i < maxLength; i++) {
+      if (i < formattedPosts.length) {
+        interleavedFeed.push(formattedPosts[i]);
+      }
+      if (i < formattedNews.length) {
+        interleavedFeed.push(formattedNews[i]);
+      }
+    }
+
+    return interleavedFeed;
+  };
+
   return (
     <div className="space-y-6 max-w-full">
-      {isAuthenticated && <CreatePost onPostCreated={fetchPosts} />}
+      {isAuthenticated && <CreatePost onPostCreated={() => {
+        setPage(1);
+        setPosts([]);
+        setNews([]);
+        setHasMore(true);
+        fetchPosts(1).then(newPosts => setPosts(newPosts));
+        fetchNews(1).then(newNews => setNews(newNews));
+      }} />}
       
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-500">
@@ -91,28 +159,53 @@ export default function Feed() {
         </div>
       ) : (
         <>
-          {posts.length > 0 ? (
-            posts.map((post) => (
-              <PostCard
-                key={post.postid}
-                post={post}
-                onPostUpdated={fetchPosts}
-              />
-            ))
-          ) : (
-            <div className="text-center text-gray-400 py-8">
-              No posts yet. Be the first to post something!
+          {getInterleavedFeed().map((item, index) => (
+            <div
+              key={item.type === 'post' ? `post-${item.content.postid}` : `news-${index}`}
+            >
+              {item.type === 'post' ? (
+                <PostCard
+                  post={item.content}
+                  onPostUpdated={() => {
+                    setPage(1);
+                    setPosts([]);
+                    setNews([]);
+                    setHasMore(true);
+                    fetchPosts(1).then(newPosts => setPosts(newPosts));
+                    fetchNews(1).then(newNews => setNews(newNews));
+                  }}
+                />
+              ) : (
+                <NewsCard article={item.content} />
+              )}
+            </div>
+          ))}
+          
+          {hasMore && (
+            <div className="flex justify-center py-4">
+              <button
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className={`px-6 py-2 rounded-lg font-medium transition-colors
+                  ${isLoadingMore 
+                    ? 'bg-gray-300 cursor-not-allowed' 
+                    : 'bg-orange-500 hover:bg-orange-600 text-white'
+                  }`}
+              >
+                {isLoadingMore ? 'Loading...' : 'Load More'}
+              </button>
             </div>
           )}
-
-          {news.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold text-white mb-4">Latest News</h2>
-              <div className="space-y-4">
-                {news.map((item, index) => (
-                  <NewsCard key={index} article={item} />
-                ))}
-              </div>
+          
+          {!hasMore && !isLoadingMore && posts.length > 0 && (
+            <div className="text-center text-gray-400 py-4">
+              No more content to load
+            </div>
+          )}
+          
+          {!loading && posts.length === 0 && news.length === 0 && (
+            <div className="text-center text-gray-400 py-8">
+              No content available yet. Be the first to post something!
             </div>
           )}
         </>

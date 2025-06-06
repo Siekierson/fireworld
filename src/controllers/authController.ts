@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const DEFAULT_AVATAR_URL = '/default-avatar.png';
 
 export const authController = {
-  async register(name: string, password: string, imageURL?: string) {
+  async register(name: string, password: string) {
     try {
       console.log('Starting registration process...');
       
@@ -41,15 +41,10 @@ export const authController = {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Prepare user data
-      const userData: any = {
+      const userData = {
         name,
         password: hashedPassword
       };
-
-      // Only add imageURL if it's provided
-      if (imageURL) {
-        userData.imageURL = imageURL;
-      }
 
       console.log('Creating new user...');
       const { data, error } = await supabase

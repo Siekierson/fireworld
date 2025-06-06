@@ -270,60 +270,60 @@ export default function Messages() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-orange-900 via-red-800 to-red-900">
       <Sidebar />
-      <div className="flex-1 container mx-auto px-4 py-8">
-        <div className="bg-white/10 backdrop-blur-md rounded-xl h-[calc(100vh-4rem)] flex overflow-hidden">
-          <div className="w-80 border-r border-white/10 flex flex-col">
-            <div className="p-4 border-b border-white/10">
-              <h2 className="text-xl font-semibold text-white">Messages</h2>
+      <div className="flex-1">
+        <div className="h-[calc(100vh-4rem)] flex overflow-hidden">
+          <div className="w-96 border-r border-white/10 flex flex-col bg-[#541010]">
+            <div className="p-6 border-b border-white/10">
+              <h2 className="text-2xl font-semibold text-orange-500">Messages</h2>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <div className="p-2 space-y-1">
+              <div className="p-4 space-y-2">
                 {users.map((u) => (
                   <button
                     key={u.userID}
                     onClick={() => setSelectedUser(u)}
-                    className={`w-full flex items-center space-x-3 p-3 rounded-lg transition ${
+                    className={`w-full flex items-center space-x-4 p-4 rounded-lg transition ${
                       selectedUser?.userID === u.userID
                         ? 'bg-orange-500 text-white'
-                        : 'text-gray-300 hover:bg-white/5'
+                        : 'text-orange-500 hover:bg-white/5'
                     }`}
                   >
                     <Image
                       src={u.imageURL || '/default-avatar.png'}
                       alt={u.name || 'User'}
-                      width={40}
-                      height={40}
+                      width={48}
+                      height={48}
                       className="rounded-full"
                     />
-                    <span className="font-medium">{u.name}</span>
+                    <span className="font-medium text-lg">{u.name}</span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col bg-[#541010]">
             {selectedUser ? (
               <>
-                <div className="p-4 border-b border-white/10 bg-white/5">
-                  <div className="flex items-center space-x-3">
+                <div className="p-6 border-b border-white/10 bg-white/5">
+                  <div className="flex items-center space-x-4">
                     <Image
                       src={selectedUser.imageURL || '/default-avatar.png'}
                       alt={selectedUser.name || 'User'}
-                      width={40}
-                      height={40}
+                      width={48}
+                      height={48}
                       className="rounded-full"
                     />
                     <div>
-                      <h3 className="text-lg font-semibold text-white">
+                      <h3 className="text-xl font-semibold text-orange-500">
                         {selectedUser.name}
                       </h3>
-                      <p className="text-sm text-gray-400">Online</p>
+                      <p className="text-base text-orange-400">Online</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
                   {messages.map((message, index) => (
                     <div
                       key={index}
@@ -332,14 +332,14 @@ export default function Messages() {
                       }`}
                     >
                       <div
-                        className={`max-w-[70%] rounded-lg p-3 ${
+                        className={`max-w-[80%] rounded-lg p-4 ${
                           message.userID === user?.userID
                             ? 'bg-orange-500 text-white'
-                            : 'bg-white/10 text-white'
+                            : 'bg-white/10 text-orange-500'
                         }`}
                       >
-                        <p className="break-words">{message.message}</p>
-                        <p className="text-xs mt-1 opacity-70">
+                        <p className="break-words text-lg">{message.message}</p>
+                        <p className="text-sm mt-2 opacity-70">
                           {new Date(message.created_at).toLocaleTimeString()}
                         </p>
                       </div>
@@ -348,19 +348,19 @@ export default function Messages() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10 bg-white/5">
+                <form onSubmit={handleSendMessage} className="p-6 border-t border-white/10 bg-white/5">
                   <div className="flex space-x-4">
                     <input
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder="Type a message..."
-                      className="flex-1 bg-white/5 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-400"
+                      className="flex-1 bg-white/5 text-orange-500 rounded-lg px-6 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-orange-400"
                     />
                     <button
                       type="submit"
                       disabled={!newMessage.trim()}
-                      className="px-6 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-8 py-3 bg-orange-500 text-white rounded-lg font-semibold text-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Send
                     </button>
@@ -368,10 +368,10 @@ export default function Messages() {
                 </form>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-400">
+              <div className="flex-1 flex items-center justify-center text-orange-500">
                 <div className="text-center">
-                  <p className="text-xl mb-2">Select a user to start messaging</p>
-                  <p className="text-sm opacity-75">Choose from the list on the left</p>
+                  <p className="text-2xl mb-3">Select a user to start messaging</p>
+                  <p className="text-lg opacity-75">Choose from the list on the left</p>
                 </div>
               </div>
             )}

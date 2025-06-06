@@ -3,7 +3,7 @@ import { authController } from '@/controllers/authController';
 
 export async function POST(request: Request) {
   try {
-    const { name, password, imageURL } = await request.json();
+    const { name, password } = await request.json();
     
     if (!name || !password) {
       return NextResponse.json(
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await authController.register(name, password, imageURL);
+    const result = await authController.register(name, password);
     return NextResponse.json(result);
   } catch (error: any) {
     console.error('Registration API error:', error);

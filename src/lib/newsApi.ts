@@ -9,7 +9,7 @@ if (!API_KEY) {
 }
 
 export const newsApi = {
-  async getLatestNews(): Promise<NewsApiArticle[]> {
+  async getLatestNews(page: number = 1, limit: number = 5): Promise<NewsApiArticle[]> {
     try {
       if (!API_KEY) {
         console.error('API_KEY is undefined or empty');
@@ -23,7 +23,8 @@ export const newsApi = {
         params: {
           api_token: API_KEY,
           locale: 'pl',
-          limit: 5,
+          limit,
+          page,
           language: 'pl'
         }
       });
