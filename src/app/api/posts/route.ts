@@ -4,6 +4,39 @@ import { authController } from '@/controllers/authController';
 import jwt from 'jsonwebtoken';
 import { supabase } from '@/lib/supabase';
 
+/**
+ * @swagger
+ * /posts:
+ *   post:
+ *     summary: Utwórz nowy post
+ *     tags: [Posts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Post utworzony
+ */
+
+/**
+ * @swagger
+ * /posts:
+ *   get:
+ *     summary: Pobierz wszystkie posty
+ *     tags: [Posts]
+ *     responses:
+ *       200:
+ *         description: Lista postów
+ */
+
 export async function POST(request: Request) {
   try {
     const token = request.headers.get('Authorization')?.split(' ')[1];
@@ -125,3 +158,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Failed to delete post' }, { status: 400 });
   }
 } 
+

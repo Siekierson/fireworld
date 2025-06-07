@@ -2,6 +2,35 @@ import { NextResponse } from 'next/server';
 import { authController } from '@/controllers/authController';
 import { supabase } from '@/lib/supabase';
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Pobierz dane użytkownika
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Szczegóły użytkownika
+ */
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Pobierz listę użytkowników
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Lista użytkowników
+ */
+
+
 export async function GET(request: Request) {
   try {
     const token = request.headers.get('Authorization')?.split(' ')[1];

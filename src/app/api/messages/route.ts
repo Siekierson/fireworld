@@ -6,6 +6,46 @@ import { setJWTContext } from '@/lib/supabase';
 // Remove the createJWTContextFunction call since it's now handled by SQL migration
 // createJWTContextFunction().catch(console.error);
 
+/**
+ * @swagger
+ * /messages:
+ *   post:
+ *     summary: Wyślij wiadomość
+ *     tags: [Messages]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               recipientId:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Wiadomość wysłana
+ */
+
+/**
+ * @swagger
+ * /messages/{userId}:
+ *   get:
+ *     summary: Pobierz wiadomości z użytkownikiem
+ *     tags: [Messages]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID odbiorcy
+ *     responses:
+ *       200:
+ *         description: Lista wiadomości
+ */
+
 export async function POST(request: Request) {
   try {
     const token = request.headers.get('Authorization')?.split(' ')[1];
@@ -77,3 +117,4 @@ export async function GET(request: Request) {
     );
   }
 } 
+

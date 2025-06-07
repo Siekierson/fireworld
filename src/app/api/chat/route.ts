@@ -1,6 +1,37 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+/**
+ * @swagger
+ * /chat/rooms:
+ *   get:
+ *     summary: Pobierz dostępne pokoje czatu
+ *     tags: [Chat]
+ *     responses:
+ *       200:
+ *         description: Lista pokojów
+ */
+
+/**
+ * @swagger
+ * /chat/rooms/{roomId}/join:
+ *   post:
+ *     summary: Dołącz do pokoju
+ *     tags: [Chat]
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID pokoju
+ *     responses:
+ *       200:
+ *         description: Dołączono
+ */
+
+
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
