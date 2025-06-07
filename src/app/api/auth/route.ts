@@ -1,6 +1,56 @@
 import { NextResponse } from 'next/server';
 import { authController } from '@/controllers/authController';
 
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Rejestracja użytkownika
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Utworzono użytkownika
+ *       400:
+ *         description: Błąd walidacji
+ */
+
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Logowanie użytkownika
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Zalogowano pomyślnie
+ *       401:
+ *         description: Nieprawidłowe dane
+ */
+
 export async function POST(request: Request) {
   try {
     const { name, password } = await request.json();

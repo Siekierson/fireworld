@@ -3,6 +3,40 @@ import { activityController } from '@/controllers/activityController';
 import { authController } from '@/controllers/authController';
 import { supabase } from '@/lib/supabase';
 
+/**
+ * @swagger
+ * /activity:
+ *   get:
+ *     summary: Pobierz aktywność użytkownika
+ *     tags: [Activity]
+ *     responses:
+ *       200:
+ *         description: Lista aktywności
+ */
+
+/**
+ * @swagger
+ * /activity:
+ *   post:
+ *     summary: Dodaj aktywność
+ *     tags: [Activity]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Dodano aktywność
+ */
+
+
 export async function POST(request: Request) {
   try {
     const token = request.headers.get('Authorization')?.split(' ')[1];
@@ -90,3 +124,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Failed to delete activity' }, { status: 400 });
   }
 } 
+
