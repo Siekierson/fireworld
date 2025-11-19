@@ -1,0 +1,19 @@
+
+
+services: 
+
+  backend:
+    build:
+    ports:
+      - '3000:9000'
+
+  db:
+    image: postgres:latest
+    environment:
+     POSTGRES_USER: user
+     POSTGRES_PASSWORD: pass
+     POSTGRES_DB: mydb
+  volumes:
+  - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
